@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTML5 Game with Bounce Effect and Border</title>
+    <meta name="description" content="A basic HTML5 game with bounce effect and border">
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+    <canvas id="canvas" width="750" height="400" style="border: 2px solid #000;">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        // Rectangle properties
+        const rectWidth = 150;
+        const rectHeight = 100;
+
+        // Initial positions for the rectangles
+        let rect1X = 100;
+        let rect1Y = 100;
+        let rect2X = 500;
+        let rect2Y = 250;
+
+        // Velocities for the rectangles
+        let velocityX1 = 2;
+        let velocityY1 = 2;
+        let velocityX2 = -2;
+        let velocityY2 = -2;
+
+        function draw() {
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the first rectangle
+            context.fillStyle = '#ff8080';
+            context.fillRect(rect1X, rect1Y, rectWidth, rectHeight);
+            context.strokeStyle = '#000'; // Border color
+            context.lineWidth = 2; // Border thickness
+            context.strokeRect(rect1X, rect1Y, rectWidth, rectHeight);
+
+            // Draw the second rectangle
+            context.fillStyle = '#8080ff';
+            context.fillRect(rect2X, rect2Y, rectWidth, rectHeight);
+            context.strokeStyle = '#000';
+            context.lineWidth = 2;
+            context.strokeRect(rect2X, rect2Y, rectWidth, rectHeight);
+        }
+
+        function updatePositions(deltaTime) {
+            // Update position based on velocity and time
+            rect1X += velocityX1 * deltaTime;
+            rect1Y += velocityY1 * deltaTime;
+            rect2X += velocityX2 * deltaTime;
+            rect2Y += velocityY2 * deltaTime;
+
+            // Check for collisions with canvas edges and bounce
+            if (rect1X <= 0 || rect1X + rectWidth >= canvas.width) {
+                velocityX1 = -velocityX1;
+            }
+            if (rect1Y <= 0 || rect1Y + rectHeight >= canvas.height) {
+                velocityY1 = -velocityY1;
+            }
+            if (rect2X <= 0 || rect2X + rectWidth >= canvas.width) {
+                velocityX2 = -velocityX2;
+            }
+            if (rect2Y <= 0 || rect2Y + rectHeight >= canvas.height) {
+                velocityY2 = -velocityY2;
+            }
+        }
+
+        let lastTime = 0;
+
+        function gameLoop(timestamp) {
+            const deltaTime = (timestamp - lastTime) / 16.67; // Normalizing for a frame rate of ~60fps
+            lastTime = timestamp;
+
+            // Update positions and draw the rectangles
+            updatePositions(deltaTime);
+            draw();
+
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>

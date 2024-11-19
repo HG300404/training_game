@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTML5 Game</title>
+    <meta name="description" content="A basic HTML5 game">
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+    <canvas id="canvas" width="750" height="400">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        function draw() {
+            context.fillStyle = '#ff8080';
+            context.fillRect(rectX, rectY, 150, 100);
+        }
+        let rectX = 0;
+        let rectY = 0;
+
+        function gameLoop(timeStamp) {
+            // Update game objects in the loop
+            update();
+            draw();
+
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            rectX += 1;
+            rectY += 1;
+        }
+
+        // Start the game loop
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>HTML5 Game</title>
+    <meta name="description" content="A basic HTML5 game">
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="600" height="800"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const context = canvas.getContext("2d");
+
+        let position = { x: 100, y: 100 }; // Starting position
+        let velocity = { x: 2, y: 3 };     // Speed and direction of movement
+
+        function drawCircle(position) {
+            context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+            context.beginPath();
+            context.arc(position.x, position.y, 20, 0, Math.PI * 2); // Draw circle
+            context.fillStyle = "blue";
+            context.fill();
+            context.closePath();
+        }
+
+        function addVectors(position, velocity) {
+            return {
+                x: position.x + velocity.x,
+                y: position.y + velocity.y
+            };
+        }
+
+        function updatePosition() {
+            position = addVectors(position, velocity);
+        }
+
+        function gameLoop() {
+            updatePosition();
+            drawCircle(position);
+            requestAnimationFrame(gameLoop); // Call gameLoop on the next frame
+        }
+
+        gameLoop(); // Start the animation
+    </script>
+</body>
+
+</html>

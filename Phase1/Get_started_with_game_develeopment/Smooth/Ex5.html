@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTML5 Game with Border and FPS Counter</title>
+    <meta name="description" content="A basic HTML5 game with border and FPS counter">
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+    <canvas id="canvas" width="750" height="400" style="border: 2px solid #000;">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        // Rectangle properties
+        const rectWidth = 150;
+        const rectHeight = 100;
+
+        // Initial positions for the user-controlled rectangle
+        let userRectX = 300;
+        let userRectY = 200;
+        let userVelocity = 200;  // Controls speed of the user rectangle (in pixels per second)
+
+        // To track arrow key presses
+        let keys = {
+            up: false,
+            down: false,
+            left: false,
+            right: false
+        };
+
+        // FPS variables
+        let frameCount = 0;
+        let fps = 0;
+        let lastFpsUpdateTime = 0;
+
+        // Draw function to render the user-controlled rectangle and FPS counter
+        function draw() {
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the user-controlled rectangle
+            context.fillStyle = '#80ff80';  // Light green
+            context.fillRect(userRectX, userRectY, rectWidth, rectHeight);
+            context.strokeStyle = '#000';
+            context.lineWidth = 2;
+            context.strokeRect(userRectX, userRectY, rectWidth, rectHeight);
+
+            // Draw FPS counter in the top-left corner
+            context.fillStyle = '#000';
+            context.font = '20px Arial';
+            context.fillText(`FPS: ${fps}`, 10, 30);
+        }
+
+        // Update positions based on velocity and deltaTime
+        function updatePositions(deltaTime) {
+            // Update position for the user-controlled rectangle based on arrow key presses
+            if (keys.up) userRectY -= userVelocity * deltaTime;
+            if (keys.down) userRectY += userVelocity * deltaTime;
+            if (keys.left) userRectX -= userVelocity * deltaTime;
+            if (keys.right) userRectX += userVelocity * deltaTime;
+
+            // Prevent the user rectangle from going out of bounds
+            userRectX = Math.max(0, Math.min(userRectX, canvas.width - rectWidth));
+            userRectY = Math.max(0, Math.min(userRectY, canvas.height - rectHeight));
+        }
+
+        // Keydown and keyup event listeners to track the arrow keys
+        window.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowUp') keys.up = true;
+            if (event.key === 'ArrowDown') keys.down = true;
+            if (event.key === 'ArrowLeft') keys.left = true;
+            if (event.key === 'ArrowRight') keys.right = true;
+        });
+
+        window.addEventListener('keyup', function (event) {
+            if (event.key === 'ArrowUp') keys.up = false;
+            if (event.key === 'ArrowDown') keys.down = false;
+            if (event.key === 'ArrowLeft') keys.left = false;
+            if (event.key === 'ArrowRight') keys.right = false;
+        });
+
+        let lastTime = 0;
+
+        // Game loop function
+        function gameLoop(timestamp) {
+            const deltaTime = (timestamp - lastTime) / 1000; // Time in seconds
+            lastTime = timestamp;
+
+            // Update positions and draw the rectangles
+            updatePositions(deltaTime);
+            draw();
+
+            // Update FPS counter every second
+            frameCount++;
+            if (timestamp - lastFpsUpdateTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFpsUpdateTime = timestamp;
+            }
+
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>

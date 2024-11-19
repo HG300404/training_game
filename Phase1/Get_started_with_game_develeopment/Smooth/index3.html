@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTML5 Game</title>
+    <meta name="description" content="A basic HTML5 game">
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+    <canvas id="canvas" width="750" height="400">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        let secondsPassed = 0;
+        let oldTimeStamp = 0;
+        let movingSpeed = 50;
+
+        let rectX = 0;
+        let rectY = 0;
+
+        function draw() {
+            // Clear the entire canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            context.fillStyle = '#ff8080';
+            context.fillRect(rectX, rectY, 150, 100);
+        }
+
+        function gameLoop(timeStamp) {
+            // Calculate how much time has passed
+            secondsPassed = (timeStamp - oldTimeStamp) / 1000;
+            // Move forward in time with a maximum amount
+            oldTimeStamp = timeStamp;
+
+            secondsPassed = Math.min(secondsPassed, 0.1);
+            
+            // Pass the time to the update
+            update(secondsPassed);
+            draw();
+
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        function update(secondsPassed) {
+            // Use time to calculate new position
+            rectX += (movingSpeed * secondsPassed);
+            rectY += (movingSpeed * secondsPassed);
+        }
+
+        // Start the game loop
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>HTML5 Game</title>
+    <meta name="description" content="A basic HTML5 game">
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="600" height="800"></canvas>
+    <script>
+        class Vector {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+
+            // Add two vectors
+            add(vector) {
+                return new Vector(this.x + vector.x, this.y + vector.y);
+            }
+
+            // Subtract two vectors
+            subtract(vector) {
+                return new Vector(this.x - vector.x, this.y - vector.y);
+            }
+
+            // Multiply vector by a scalar
+            multiply(scalar) {
+                return new Vector(this.x * scalar, this.y * scalar);
+            }
+
+            // Calculate the magnitude of the vector
+            magnitude() {
+                return Math.sqrt(this.x * this.x + this.y * this.y);
+            }
+
+            // Normalize the vector (unit vector)
+            normalize() {
+                let mag = this.magnitude();
+                return mag === 0 ? new Vector(0, 0) : new Vector(this.x / mag, this.y / mag);
+            }
+
+            // Dot product with another vector
+            dot(vector) {
+                return this.x * vector.x + this.y * vector.y;
+            }
+        }
+
+        const canvas = document.getElementById("gameCanvas");
+        const context = canvas.getContext("2d");
+
+        const circles = [];
+        const numCircles = 5; // Number of circles to draw
+
+        // Initialize positions and velocities for the circles
+        for (let i = 0; i < numCircles; i++) {
+            let position = new Vector(Math.random() * canvas.width, Math.random() * canvas.height);
+            let velocity = new Vector((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4);
+            circles.push({ position, velocity });
+        }
+
+        function drawCircle(position) {
+            context.beginPath();
+            context.arc(position.x, position.y, 20, 0, Math.PI * 2);
+            context.fillStyle = "blue";
+            context.fill();
+            context.closePath();
+        }
+
+        function updatePositions() {
+            circles.forEach(circle => {
+                circle.position = circle.position.add(circle.velocity);
+
+                // Check for boundary collisions and reverse direction if needed
+                if (circle.position.x <= 20 || circle.position.x >= canvas.width - 20) {
+                    circle.velocity.x *= -1;
+                }
+                if (circle.position.y <= 20 || circle.position.y >= canvas.height - 20) {
+                    circle.velocity.y *= -1;
+                }
+            });
+        }
+
+        function gameLoop() {
+            context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+            updatePositions();
+            circles.forEach(circle => drawCircle(circle.position));
+            requestAnimationFrame(gameLoop); // Call gameLoop on the next frame
+        }
+
+        gameLoop(); // Start the animation
+
+
+    </script>
+</body>
+
+</html>

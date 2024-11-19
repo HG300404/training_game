@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HTML5 Game</title>
+    <meta name="description" content="A basic HTML5 game">
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+    <canvas id="canvas" width="750" height="400">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        let angle = 0; // Angle in radians
+        const centerX = canvas.width / 2; // Center X of the circle
+        const centerY = canvas.height / 2; // Center Y of the circle
+        const radius = 100; // Radius of the circle
+        const speed = 2 * Math.PI / 100; // Speed of rotation
+
+        function draw() {
+            // Clear the entire canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate new position using trigonometric functions
+            const rectX = centerX + radius * Math.cos(angle) - 75; // Subtract half the width of the rectangle to center it
+            const rectY = centerY + radius * Math.sin(angle) - 50; // Subtract half the height of the rectangle to center it
+
+            // Draw the rectangle
+            context.fillStyle = '#ff8080';
+            context.fillRect(rectX, rectY, 150, 100);
+        }
+
+        function gameLoop() {
+            // Update the angle
+            angle += speed;
+            if (angle >= 2 * Math.PI) {
+                angle = 0; // Reset the angle to keep it within one full rotation
+            }
+
+            // Draw the rectangle at the new position
+            draw();
+
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>

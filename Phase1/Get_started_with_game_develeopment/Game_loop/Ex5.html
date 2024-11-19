@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bouncing Ball Game with Average FPS Display</title>
+    <meta name="description" content="A simple game featuring a bouncing ball with average FPS display over the last second">
+    <style>
+        #canvas {
+            border: 2px solid black; /* Add a border around the canvas */
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" width="750" height="400">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+    <button id="toggleButton">Toggle FPS Cap</button>
+
+    <script>
+        // Set up canvas and context
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const toggleButton = document.getElementById('toggleButton');
+
+        // Ball properties
+        let ballX = 50;
+        let ballY = 200;
+        let ballRadius = 20;
+        let speedX = 150; // pixels per second for X-axis
+        let speedY = 100; // pixels per second for Y-axis
+
+        let oldTimeStamp = 0;
+        let frameTimes = []; // Array to store timestamps of frames
+        let avgFPS = 0;
+        let capped = false;
+        let lastFrameTime = 0;
+        const frameInterval = 1000 / 30; // 30 FPS cap
+
+        // Toggle FPS cap mode
+        toggleButton.addEventListener('click', () => {
+            capped = !capped;
+            toggleButton.textContent = capped ? "Switch to Uncapped FPS" : "Switch to Capped FPS";
+        });
+
+        function gameLoop(timeStamp) {
+            // Calculate time passed
+            let secondsPassed = (timeStamp - oldTimeStamp) / 1000;
+            oldTimeStamp = timeStamp;
+
+            // Store current timestamp
+            frameTimes.push(timeStamp);
+
+            // Remove timestamps older than 1 second
+            frameTimes = frameTimes.filter(t => timeStamp - t <= 1000);
+
+            // Calculate average FPS
+            avgFPS = Math.round(frameTimes.length / (1000 / 1000)); // Frame count per second
+
+            // Capped frame logic
+            if (capped) {
+                if (timeStamp - lastFrameTime < frameInterval) {
+                    window.requestAnimationFrame(gameLoop);
+                    return;
+                }
+                lastFrameTime = timeStamp;
+                avgFPS = 30; // Force display to 30 when capped
+            }
+
+            // Update ball position
+            ballX += speedX * secondsPassed;
+            ballY += speedY * secondsPassed;
+
+            // Check for collisions with canvas boundaries and make the ball bounce
+            if (ballX > canvas.width - ballRadius || ballX < ballRadius) {
+                speedX = -speedX; // Reverse direction on X-axis
+            }
+            if (ballY > canvas.height - ballRadius || ballY < ballRadius) {
+                speedY = -speedY; // Reverse direction on Y-axis
+            }
+
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the ball
+            context.beginPath();
+            context.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            context.fillStyle = 'red';
+            context.fill();
+            context.closePath();
+
+            // Draw average FPS counter
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, 150, 40); // Background for FPS text
+            context.font = '20px Arial';
+            context.fillStyle = 'white';
+            context.fillText("Avg FPS: " + avgFPS, 10, 25);
+
+            // Request the next frame
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>

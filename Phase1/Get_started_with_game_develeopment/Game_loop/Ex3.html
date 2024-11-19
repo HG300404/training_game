@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Moving Circle Game with FPS Counter and Toggle FPS Cap</title>
+    <meta name="description" content="A basic HTML5 game with a moving circle, FPS counter, and FPS cap toggle button">
+</head>
+
+<body>
+    <canvas id="canvas" width="750" height="400">
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+    <button id="toggleButton">Toggle FPS Cap</button>
+
+    <script>
+        // Set up canvas and context
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const toggleButton = document.getElementById('toggleButton');
+
+        // Circle properties
+        let circleX = 50;
+        let circleY = canvas.height / 2;
+        let speedX = 100; // pixels per second
+
+        let oldTimeStamp = 0;
+        let fps;
+        let capped = false;
+        let lastFrameTime = 0;
+        const frameInterval = 1000 / 30; // 30 FPS cap
+
+        // Toggle FPS cap mode
+        toggleButton.addEventListener('click', () => {
+            capped = !capped;
+            toggleButton.textContent = capped ? "Switch to Uncapped FPS" : "Switch to Capped FPS";
+        });
+
+        function gameLoop(timeStamp) {
+            // Calculate time passed
+            let secondsPassed = (timeStamp - oldTimeStamp) / 1000;
+            oldTimeStamp = timeStamp;
+
+            // Calculate FPS
+            fps = Math.round(1 / secondsPassed);
+
+            // Capped frame logic
+            if (capped) {
+                if (timeStamp - lastFrameTime < frameInterval) {
+                    window.requestAnimationFrame(gameLoop);
+                    return;
+                }
+                lastFrameTime = timeStamp;
+                fps = 30; // Force display to 30 when capped
+            }
+
+            // Move the circle
+            circleX += speedX * secondsPassed;
+
+            // Check boundaries to make the circle bounce
+            if (circleX > canvas.width - 20 || circleX < 20) {
+                speedX = -speedX; // Reverse direction
+            }
+
+            // Clear the canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the circle
+            context.beginPath();
+            context.arc(circleX, circleY, 20, 0, Math.PI * 2);
+            context.fillStyle = 'blue';
+            context.fill();
+            context.closePath();
+
+            // Draw FPS counter
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, 100, 40); // Background for FPS text
+            context.font = '20px Arial';
+            context.fillStyle = 'white';
+            context.fillText("FPS: " + fps, 10, 25);
+
+            // Request the next frame
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        // Start the game loop
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>

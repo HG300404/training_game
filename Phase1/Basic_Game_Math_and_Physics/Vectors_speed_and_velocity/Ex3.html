@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>HTML5 Game</title>
+    <meta name="description" content="A basic HTML5 game">
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="600" height="800"></canvas>
+    <script>
+        class Vector {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+
+            add(vector) {
+                return new Vector(this.x + vector.x, this.y + vector.y);
+            }
+
+            multiply(scalar) {
+                return new Vector(this.x * scalar, this.y * scalar);
+            }
+        }
+
+        const canvas = document.getElementById("gameCanvas");
+        const context = canvas.getContext("2d");
+
+        let position = new Vector(100, 100); // Starting position
+        let velocity = new Vector(0, 0);     // Initial velocity
+
+        // Event listeners for key presses
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                case 'ArrowUp':
+                    velocity = velocity.add(new Vector(0, -1)); // Increase y component (move up)
+                    break;
+                case 'ArrowDown':
+                    velocity = velocity.add(new Vector(0, 1));  // Decrease y component (move down)
+                    break;
+                case 'ArrowLeft':
+                    velocity = velocity.add(new Vector(-1, 0)); // Decrease x component (move left)
+                    break;
+                case 'ArrowRight':
+                    velocity = velocity.add(new Vector(1, 0));  // Increase x component (move right)
+                    break;
+            }
+        });
+
+        function drawCircle(position) {
+            context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+            context.beginPath();
+            context.arc(position.x, position.y, 20, 0, Math.PI * 2); // Draw circle
+            context.fillStyle = "blue";
+            context.fill();
+            context.closePath();
+        }
+
+        function updatePosition() {
+            position = position.add(velocity);
+
+            // Check for boundary collisions and keep the circle inside the canvas
+            if (position.x <= 20) {
+                position.x = 20;
+                velocity.x = 0;
+            }
+            if (position.x >= canvas.width - 20) {
+                position.x = canvas.width - 20;
+                velocity.x = 0;
+            }
+            if (position.y <= 20) {
+                position.y = 20;
+                velocity.y = 0;
+            }
+            if (position.y >= canvas.height - 20) {
+                position.y = canvas.height - 20;
+                velocity.y = 0;
+            }
+        }
+
+        function gameLoop() {
+            updatePosition();
+            drawCircle(position);
+            requestAnimationFrame(gameLoop); // Call gameLoop on the next frame
+        }
+
+        gameLoop(); // Start the animation
+
+
+
+
+    </script>
+</body>
+
+</html>
