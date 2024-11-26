@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gravity and Collisions</title>
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <script>
+        // Base class for all game objects
+        class GameObject {
+            constructor(context, x, y, vx, vy) {
+                this.context = context;
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.isColliding = false;
+            }
+        }
+
+        // Square class
+        class Square extends GameObject {
+            constructor(context, x, y, vx, vy) {
+                super(context, x, y, vx, vy);
+                this.width = 50;
+                this.height = 50;
+            }
+
+            draw() {
+                this.context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
+                this.context.fillRect(this.x, this.y, this.width, this.height);
+            }
+
+            update(secondsPassed) {
+                this.x += this.vx * secondsPassed;
+                this.y += this.vy * secondsPassed;
+
+                // Bounce off the edges
+                if (this.x < 0 || this.x + this.width > canvas.width) {
+                    this.vx = -this.vx;
+                }
+                if (this.y < 0 || this.y + this.height > canvas.height) {
+                    this.vy = -this.vy;
+                }
+            }
+        }
+
+        // Circle class (optional, in case you need it)
+        class Circle extends GameObject {
+            constructor(context, x, y, vx, vy, radius) {
+                super(context, x, y, vx, vy);
+                this.radius = radius || 25;
+            }
+
+            draw() {
+                this.context.beginPath();
+                this.context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+                this.context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
+                this.context.fill();
+            }
+
+            update(secondsPassed) {
+                this.x += this.vx * secondsPassed;
+                this.y += this.vy * secondsPassed;
+
+                // Bounce off the edges
+                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+                    this.vx = -this.vx;
+                }
+                if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
+                    this.vy = -this.vy;
+                }
+            }
+        }
+
+        // Collision detection
+        function detectCollisions() {
+            let obj1, obj2;
+
+            // Reset collision state
+            for (let i = 0; i < gameObjects.length; i++) {
+                gameObjects[i].isColliding = false;
+            }
+
+            // Check for collisions
+            for (let i = 0; i < gameObjects.length; i++) {
+                obj1 = gameObjects[i];
+                for (let j = i + 1; j < gameObjects.length; j++) {
+                    obj2 = gameObjects[j];
+
+                    if (rectIntersect(
+                        obj1.x, obj1.y, obj1.width, obj1.height,
+                        obj2.x, obj2.y, obj2.width, obj2.height
+                    )) {
+                        obj1.isColliding = true;
+                        obj2.isColliding = true;
+                    }
+                }
+            }
+        }
+
+        // Helper function to detect rectangle intersection
+        function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
+            return (
+                x1 < x2 + w2 &&
+                x1 + w1 > x2 &&
+                y1 < y2 + h2 &&
+                y1 + h1 > y2
+            );
+        }
+
+        // Clear the canvas
+        function clearCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Global variables
+        let canvas = document.getElementById('gameCanvas');
+        let context = canvas.getContext('2d');
+        let gameObjects = [];
+        let oldTimeStamp = 0;
+
+        // Create the game world
+        function createWorld() {
+            gameObjects = [
+                new Square(context, 250, 50, 100, 50),
+                new Square(context, 250, 300, 50, -100),
+                new Square(context, 150, 100, 50, 50),
+                new Square(context, 350, 75, -50, 50)
+            ];
+        }
+
+        
+        // Game loop
+        function gameLoop(timeStamp) {
+            let secondsPassed = (timeStamp - oldTimeStamp) / 1000;
+            oldTimeStamp = timeStamp;
+
+            // Update all game objects
+            gameObjects.forEach(obj => obj.update(secondsPassed));
+
+            // Detect collisions
+            detectCollisions();
+
+            // Clear canvas
+            clearCanvas();
+
+            // Draw all game objects
+            gameObjects.forEach(obj => obj.draw());
+
+            // Request the next frame
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize the game
+        createWorld();
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>
