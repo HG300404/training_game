@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gravity and Collisions</title>
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+
+        let rectangle1 = {
+            position: { x: 150, y: 100 }, // Top-left corner position
+            width: 100,
+            height: 50,
+            rotation: 0 // Initial rotation angle in radians
+        };
+
+        let mousePosition = { x: 0, y: 0 };
+
+        // Listen to mouse move events
+        canvas.addEventListener('mousemove', function (event) {
+            mousePosition.x = event.clientX - canvas.offsetLeft;
+            mousePosition.y = event.clientY - canvas.offsetTop;
+        });
+
+        function drawRotatedRectangle(rect) {
+            context.save(); // Save the current context state
+
+            // Move the origin to the top-left corner of the rectangle
+            context.translate(rect.position.x, rect.position.y);
+
+            // Rotate the context by the rectangle’s rotation
+            context.rotate(rect.rotation);
+
+            // Draw the rectangle (top-left corner at the origin now)
+            context.fillStyle = "green";
+            context.fillRect(0, 0, rect.width, rect.height);
+
+            context.restore(); // Restore the context to its original state
+        }
+
+        function updateRotation(rect) {
+            // Calculate the angle between the rectangle and the mouse pointer
+            const dx = mousePosition.x - rect.position.x;
+            const dy = mousePosition.y - rect.position.y;
+            rect.rotation = Math.atan2(dy, dx); // Calculate the rotation angle
+        }
+
+        function gameLoop() {
+            context.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
+            updateRotation(rectangle1); // Update the rotation based on mouse position
+
+            drawRotatedRectangle(rectangle1);
+
+            requestAnimationFrame(gameLoop); // Continue the loop
+        }
+
+        gameLoop(); // Start the animation
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gravity and Collisions</title>
+</head>
+
+<body>
+
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <script>
+        // Base class for all game objects
+        class GameObject {
+            constructor(context, x, y, vx, vy, mass = 1) {
+                this.context = context;
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.mass = mass;
+                this.isColliding = false;
+            }
+
+            // Ensure no object is permanently altered
+            resetCollision() {
+                this.isColliding = false;
+            }
+        }
+
+        // Square class
+        class Square extends GameObject {
+            constructor(context, x, y, vx, vy, mass = 1) {
+                super(context, x, y, vx, vy, mass);
+                this.width = 50;
+                this.height = 50;
+            }
+
+            draw() {
+                this.context.fillStyle = this.isColliding ? '#ff0000' : '#0099b0';
+                this.context.fillRect(this.x, this.y, this.width, this.height);
+
+                // Display velocity on the rectangle
+                this.context.fillStyle = "#000000";
+                this.context.font = "12px Arial";
+                this.context.fillText(`vx: ${this.vx.toFixed(1)}`, this.x + 5, this.y + 15);
+                this.context.fillText(`vy: ${this.vy.toFixed(1)}`, this.x + 5, this.y + 30);
+            }
+
+            update(secondsPassed) {
+                this.x += this.vx * secondsPassed;
+                this.y += this.vy * secondsPassed;
+
+                // Bounce off the edges
+                if (this.x < 0 || this.x + this.width > canvas.width) {
+                    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
+                    this.vx = -this.vx;
+                }
+                if (this.y < 0 || this.y + this.height > canvas.height) {
+                    this.y = Math.max(0, Math.min(canvas.height - this.height, this.y));
+                    this.vy = -this.vy;
+                }
+            }
+
+            getCenter() {
+                return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
+            }
+        }
+
+        // Function to handle collision response
+        function handleCollision(obj1, obj2) {
+            const center1 = obj1.getCenter();
+            const center2 = obj2.getCenter();
+
+            const normalX = center2.x - center1.x;
+            const normalY = center2.y - center1.y;
+            const length = Math.sqrt(normalX ** 2 + normalY ** 2);
+            const nx = normalX / length;
+            const ny = normalY / length;
+
+            const relativeVelocityX = obj1.vx - obj2.vx;
+            const relativeVelocityY = obj1.vy - obj2.vy;
+            const dot = relativeVelocityX * nx + relativeVelocityY * ny;
+
+            // Exit if objects are moving apart
+            if (dot > 0) return;
+
+            const impulse = -dot / (1 / obj1.mass + 1 / obj2.mass);
+
+            const impulseX = impulse * nx;
+            const impulseY = impulse * ny;
+
+            obj1.vx += impulseX / obj1.mass;
+            obj1.vy += impulseY / obj1.mass;
+
+            obj2.vx -= impulseX / obj2.mass;
+            obj2.vy -= impulseY / obj2.mass;
+
+            // Resolve overlap by pushing objects apart
+            const overlap = obj1.width - Math.abs(center1.x - center2.x);
+            if (overlap > 0) {
+                const correctionX = (overlap / 2) * nx;
+                const correctionY = (overlap / 2) * ny;
+
+                obj1.x -= correctionX;
+                obj1.y -= correctionY;
+
+                obj2.x += correctionX;
+                obj2.y += correctionY;
+            }
+        }
+
+        // Detect and handle collisions
+        function detectCollisions() {
+            // Reset all objects' collision state
+            gameObjects.forEach(obj => obj.resetCollision());
+
+            for (let i = 0; i < gameObjects.length; i++) {
+                for (let j = i + 1; j < gameObjects.length; j++) {
+                    const obj1 = gameObjects[i];
+                    const obj2 = gameObjects[j];
+
+                    if (obj1 instanceof Square && obj2 instanceof Square) {
+                        if (rectRectCollision(obj1.x, obj1.y, obj1.width, obj1.height, obj2.x, obj2.y, obj2.width, obj2.height)) {
+                            obj1.isColliding = true;
+                            obj2.isColliding = true;
+                            handleCollision(obj1, obj2);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Function to check collision between two rectangles
+        function rectRectCollision(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h) {
+            return (
+                r1x < r2x + r2w &&
+                r1x + r1w > r2x &&
+                r1y < r2y + r2h &&
+                r1y + r1h > r2y
+            );
+        }
+
+        // Clear the canvas
+        function clearCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Global variables
+        let canvas = document.getElementById('gameCanvas');
+        let context = canvas.getContext('2d');
+        let gameObjects = [];
+        let oldTimeStamp = 0;
+
+        // Create the game world
+        function createWorld() {
+            gameObjects = [
+                new Square(context, 150, 150, 50, 0, 2),
+                new Square(context, 200, 100, -50, 0, 2),
+                new Square(context, 250, 50, 100, 50),
+                new Square(context, 250, 300, 50, -100),
+            ];
+        }
+
+        // Game loop
+        function gameLoop(timeStamp) {
+            let secondsPassed = (timeStamp - oldTimeStamp) / 1000;
+            oldTimeStamp = timeStamp;
+
+            gameObjects.forEach(obj => obj.update(secondsPassed));
+            detectCollisions();
+            clearCanvas();
+            gameObjects.forEach(obj => obj.draw());
+
+            window.requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize the game
+        createWorld();
+        window.requestAnimationFrame(gameLoop);
+    </script>
+</body>
+
+</html>

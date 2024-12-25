@@ -20,6 +20,11 @@
                 this.vy = vy;
                 this.isColliding = false;
             }
+
+            // Ensure no object is permanently altered
+            resetCollision() {
+                this.isColliding = false;
+            }
         }
 
         // Square class
@@ -31,7 +36,7 @@
             }
 
             draw() {
-                this.context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
+                this.context.fillStyle = this.isColliding ? '#ff0000' : '#0099b0';
                 this.context.fillRect(this.x, this.y, this.width, this.height);
             }
 
@@ -61,7 +66,7 @@
             draw() {
                 this.context.beginPath();
                 this.context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-                this.context.fillStyle = this.isColliding ? '#ff8080' : '#0099b0';
+                this.context.fillStyle = this.isColliding ? '#ff0000' : '#0099b0';
                 this.context.fill();
             }
 
@@ -97,59 +102,34 @@
             }
         }
 
-        // Function to check rectangle intersection
-        function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) {
+        // Function to check collision between two rectangles
+        function rectRectCollision(r1x, r1y, r1w, r1h, r2x, r2y, r2w, r2h) {
             return (
-                x1 < x2 + w2 &&
-                x1 + w1 > x2 &&
-                y1 < y2 + h2 &&
-                y1 + h1 > y2
+                r1x < r2x + r2w &&
+                r1x + r1w > r2x &&
+                r1y < r2y + r2h &&
+                r1y + r1h > r2y
             );
         }
 
-        // Function to check collision between rectangle and circle
-        function rectCircleIntersect(rx, ry, rw, rh, cx, cy, cr) {
-            const closestX = Math.max(rx, Math.min(cx, rx + rw));
-            const closestY = Math.max(ry, Math.min(cy, ry + rh));
-            const dx = cx - closestX;
-            const dy = cy - closestY;
-            return dx * dx + dy * dy < cr * cr;
+        // Function to check collision between two circles
+        function circleCircleCollision(c1x, c1y, c1r, c2x, c2y, c2r) {
+            const dx = c1x - c2x;
+            const dy = c1y - c2y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < c1r + c2r;
         }
-        
+
         // Function to check collision between rectangle and circle
         function rectCircleCollision(rx, ry, rw, rh, cx, cy, cr) {
-            // Find the closest point on the rectangle to the circle's center
             const closestX = Math.max(rx, Math.min(cx, rx + rw));
             const closestY = Math.max(ry, Math.min(cy, ry + rh));
 
-            // Calculate the distance between the circle's center and this closest point
             const dx = cx - closestX;
             const dy = cy - closestY;
             const distanceSquared = dx * dx + dy * dy;
 
-            // Check if the distance is less than the circle's radius squared
-            if (distanceSquared < cr * cr) {
-                const distance = Math.sqrt(distanceSquared);
-
-                // Compute the collision point (closest point on the rectangle)
-                const collisionPoint = { x: closestX, y: closestY };
-
-                // Compute the normal vector (direction from collision point to circle center)
-                const normalVector = {
-                    x: dx / distance,
-                    y: dy / distance
-                };
-
-                return { collision: true, collisionPoint, normalVector };
-            }
-
-            return { collision: false };
-        }
-
-        // Function to check circle intersection
-        function circleIntersect(x1, y1, r1, x2, y2, r2) {
-            let squareDistance = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
-            return squareDistance <= ((r1 + r2) * (r1 + r2));
+            return distanceSquared < cr * cr;
         }
 
         // Limit speed to prevent excessive velocities
@@ -164,88 +144,73 @@
             }
         }
 
-        function changeVec(obj1, obj2) {
-            let vCollision = { x: obj2.x - obj1.x, y: obj2.y - obj1.y };
-            let distance = Math.sqrt(vCollision.x ** 2 + vCollision.y ** 2);
-
-            if (distance === 0) return; // Avoid division by zero
-
-            // Normalize collision vector
-            let vCollisionNorm = { x: vCollision.x / distance, y: vCollision.y / distance };
-
-            // Relative velocity
-            let vRelativeVelocity = { x: obj1.vx - obj2.vx, y: obj1.vy - obj2.vy };
-
-            // Speed along the normal vector
-            let speed = vRelativeVelocity.x * vCollisionNorm.x + vRelativeVelocity.y * vCollisionNorm.y;
-
-            if (speed <= 0) return;
-
-            // Momentum conservation
-            obj1.vx -= speed * vCollisionNorm.x;
-            obj1.vy -= speed * vCollisionNorm.y;
-            obj2.vx += speed * vCollisionNorm.x;
-            obj2.vy += speed * vCollisionNorm.y;
-
-            limitSpeed(obj1);
-            limitSpeed(obj2);
-        }
-
-        // Detect collisions
+        // Detect and handle collisions
         function detectCollisions() {
-            let obj1, obj2;
+            // Reset all objects' collision state
+            gameObjects.forEach(obj => obj.resetCollision());
 
-            // Reset collision state
             for (let i = 0; i < gameObjects.length; i++) {
-                gameObjects[i].isColliding = false;
-            }
-
-            // Check for collisions
-            for (let i = 0; i < gameObjects.length; i++) {
-                obj1 = gameObjects[i];
                 for (let j = i + 1; j < gameObjects.length; j++) {
-                    obj2 = gameObjects[j];
+                    const obj1 = gameObjects[i];
+                    const obj2 = gameObjects[j];
 
                     if (obj1 instanceof Circle && obj2 instanceof Circle) {
-                        if (circleIntersect(obj1.x, obj1.y, obj1.radius, obj2.x, obj2.y, obj2.radius)) {
+                        if (circleCircleCollision(obj1.x, obj1.y, obj1.radius, obj2.x, obj2.y, obj2.radius)) {
                             obj1.isColliding = true;
                             obj2.isColliding = true;
-                            changeVec(obj1, obj2);
+                            const dx = obj2.x - obj1.x;
+                            const dy = obj2.y - obj1.y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            const normalX = dx / distance;
+                            const normalY = dy / distance;
+                            const relativeVelocityX = obj1.vx - obj2.vx;
+                            const relativeVelocityY = obj1.vy - obj2.vy;
+                            const dot = relativeVelocityX * normalX + relativeVelocityY * normalY;
+
+                            obj1.vx -= dot * normalX;
+                            obj1.vy -= dot * normalY;
+                            obj2.vx += dot * normalX;
+                            obj2.vy += dot * normalY;
+
+                            limitSpeed(obj1);
+                            limitSpeed(obj2);
                         }
-                    } else if (obj1 instanceof Circle || obj2 instanceof Circle) {
-                        const circle = obj1 instanceof Circle ? obj1 : obj2;
-                        const rect = obj1 instanceof Circle ? obj2 : obj1;
+                    } else if (obj1 instanceof Square && obj2 instanceof Square) {
+                        if (rectRectCollision(obj1.x, obj1.y, obj1.width, obj1.height, obj2.x, obj2.y, obj2.width, obj2.height)) {
+                            obj1.isColliding = true;
+                            obj2.isColliding = true;
+                            const tempVx = obj1.vx;
+                            const tempVy = obj1.vy;
+                            obj1.vx = obj2.vx;
+                            obj1.vy = obj2.vy;
+                            obj2.vx = tempVx;
+                            obj2.vy = tempVy;
 
-                        if (rectCircleIntersect(rect.x, rect.y, rect.width, rect.height, circle.x, circle.y, circle.radius)) {
-                            rect.isColliding = true;
-                            circle.isColliding = true;
-                        }
-
-                        const result = rectCircleCollision(
-                            rect.x, rect.y, rect.width, rect.height,
-                            circle.x, circle.y, circle.radius
-                        );
-
-                        if (result.collision) {
-                            rect.isColliding = true;
-                            circle.isColliding = true;
-
-                            // Reflect circle velocity
-                            const { normalVector } = result;
-                            const dot = circle.vx * normalVector.x + circle.vy * normalVector.y;
-                            circle.vx -= 2 * dot * normalVector.x;
-                            circle.vy -= 2 * dot * normalVector.y;
-
-                            limitSpeed(circle);
+                            limitSpeed(obj1);
+                            limitSpeed(obj2);
                         }
                     } else {
-                        if (rectIntersect(
-                            obj1.x, obj1.y, obj1.width, obj1.height,
-                            obj2.x, obj2.y, obj2.width, obj2.height
-                        )) {
-                            obj1.isColliding = true;
-                            obj2.isColliding = true;
-                            changeVec(obj1, obj2);
+                        const circle = obj1 instanceof Circle ? obj1 : obj2;
+                        const rect = obj1 instanceof Square ? obj1 : obj2;
+
+                        if (rectCircleCollision(rect.x, rect.y, rect.width, rect.height, circle.x, circle.y, circle.radius)) {
+                            rect.isColliding = true;
+                            circle.isColliding = true;
+
+                            const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+                            const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+                            const dx = circle.x - closestX;
+                            const dy = circle.y - closestY;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+
+                            const normalX = dx / distance;
+                            const normalY = dy / distance;
+                            const dot = circle.vx * normalX + circle.vy * normalY;
+
+                            circle.vx -= 2 * dot * normalX;
+                            circle.vy -= 2 * dot * normalY;
+
+                            limitSpeed(circle);
                         }
                     }
                 }
@@ -268,13 +233,8 @@
             gameObjects = [
                 new Square(context, 250, 50, 100, 50),
                 new Square(context, 250, 300, 50, -100),
-                new Square(context, 150, 100, 50, 50),
-                new Square(context, 350, 75, -50, 50),
                 new Circle(context, 100, 100, 50, -50, 30),
-                new Circle(context, 200, 150, -50, 50, 30),
-                new Circle(context, 300, 200, 30, -30, 30),
-                new Circle(context, 400, 250, -40, 40, 30),
-                new Circle(context, 500, 300, 20, -20, 30)
+                new Circle(context, 400, 200, -50, 50, 30)
             ];
         }
 
@@ -283,19 +243,11 @@
             let secondsPassed = (timeStamp - oldTimeStamp) / 1000;
             oldTimeStamp = timeStamp;
 
-            // Update all game objects
             gameObjects.forEach(obj => obj.update(secondsPassed));
-
-            // Detect collisions
             detectCollisions();
-
-            // Clear canvas
             clearCanvas();
-
-            // Draw all game objects
             gameObjects.forEach(obj => obj.draw());
 
-            // Request the next frame
             window.requestAnimationFrame(gameLoop);
         }
 
