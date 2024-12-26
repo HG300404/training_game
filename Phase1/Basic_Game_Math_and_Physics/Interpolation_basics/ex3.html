@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gravity and Collisions</title>
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="600" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+
+        let circle = {
+            position: { x: 200, y: 210 },
+            radius: 200,
+            color: "blue"
+        };
+
+        let animation = {
+            duration: 4000, // in milliseconds
+            startTime: null
+        };
+
+        function lerp(start, end, t) {
+            return start + (end - start) * t;
+        }
+
+
+        function easeInOutQuad(t) {
+            return t < 0.5
+                ? 2 * t * t // Ease-In
+                : 1 - Math.pow(-2 * t + 2, 2) / 2; // Ease-Out
+        }
+
+
+        function animateCircle(time) {
+            if (!animation.startTime) animation.startTime = time;
+            const elapsed = time - animation.startTime;
+
+            // Calculate the eased interpolation factor
+            let t = Math.min(elapsed / animation.duration, 1);
+            t = easeInOutQuad(t); // Apply easing
+
+            const angle = lerp(0, Math.PI * 2, t); // Calculate current angle (0 -> 2π)
+
+            // Interpolate position with easing
+            const x = circle.position.x + circle.radius * Math.cos(angle);
+            const y = circle.position.y + circle.radius * Math.sin(angle);
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawPath();
+            drawObject(x, y);
+
+            if (t < 1) requestAnimationFrame(animateCircle);
+        }
+
+
+
+        function drawPath() {
+            context.beginPath();
+            context.arc(circle.position.x, circle.position.y, circle.radius, 0, Math.PI * 2);
+            context.strokeStyle = '#ccc';
+            context.lineWidth = 2;
+            context.stroke();
+            context.closePath();
+        }
+
+
+        function drawObject(x, y) {
+            context.beginPath();
+            context.arc(x, y, 10, 0, Math.PI * 2);
+            context.fillStyle = '#3498db';
+            context.fill();
+            context.closePath();
+        }
+
+        requestAnimationFrame(animateCircle);
+    </script>
+</body>
+
+</html>

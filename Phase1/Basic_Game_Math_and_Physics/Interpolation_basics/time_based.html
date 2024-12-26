@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gravity and Collisions</title>
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+
+        let circle = {
+            position: { x: 50, y: 200 },
+            radius: 20,
+            color: "blue",
+            velocity: { x: 50, y: 30 } // Velocity in pixels per second
+        };
+
+        let animation = {
+            start: { x: 50, y: 200 },
+            end: { x: 500, y: 200 },
+            duration: 2000, // in milliseconds
+            startTime: null
+        };
+
+        function lerp(start, end, t) {
+            return start + (end - start) * t;
+        }
+
+        function easeOutQuad(t) {
+            return t * (2 - t); // Quadratic easing
+        }
+
+        let lastTime = 0;
+
+        function animateCircle(time) {
+            if (!animation.startTime) animation.startTime = time;
+
+            const deltaTime = (time - lastTime) / 1000; // Convert to seconds
+            lastTime = time;
+
+            const elapsed = time - animation.startTime;
+            let t = Math.min(elapsed / animation.duration, 1);
+            t = easeOutQuad(t);
+
+            // Update position using velocity and deltaTime
+            circle.position.x += (animation.end.x - animation.start.x) * deltaTime;
+            circle.position.y += (animation.end.y - animation.start.y) * deltaTime;
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawCircle(circle);
+
+            if (t < 1) requestAnimationFrame(animateCircle);
+        }
+
+        requestAnimationFrame(animateCircle);
+
+        function drawCircle({ position, radius, color }) {
+            context.beginPath();
+            context.arc(position.x, position.y, radius, 0, Math.PI * 2);
+            context.fillStyle = color;
+            context.fill();
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gravity and Collisions</title>
+    <meta name="author" content="Huong">
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const context = canvas.getContext('2d');
+
+        let circle = {
+            position: { x: 50, y: 200 },
+            radius: 20,
+            color: "blue"
+        };
+
+        let animation = {
+            start: { x: 50, y: 200 },
+            end: { x: 500, y: 200 },
+            duration: 2000, // in milliseconds
+            startTime: null
+        };
+
+        function lerp(start, end, t) {
+            return start + (end - start) * t;
+        }
+
+        
+        function easeOutQuad(t) {
+            return t * (2 - t); // Quadratic easing
+        }
+
+        function animateCircle(time) {
+            if (!animation.startTime) animation.startTime = time;
+            const elapsed = time - animation.startTime;
+
+            // Calculate the eased interpolation factor
+            let t = Math.min(elapsed / animation.duration, 1);
+            t = easeOutQuad(t); // Apply easing
+
+            // Interpolate position with easing
+            circle.position.x = lerp(animation.start.x, animation.end.x, t);
+            circle.position.y = lerp(animation.start.y, animation.end.y, t);
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawCircle(circle);
+
+            if (t < 1) requestAnimationFrame(animateCircle);
+        }
+
+
+
+        function drawCircle({ position, radius, color }) {
+            context.beginPath();
+            context.arc(position.x, position.y, radius, 0, Math.PI * 2);
+            context.fillStyle = color;
+            context.fill();
+        }
+
+        requestAnimationFrame(animateCircle);
+    </script>
+</body>
+
+</html>
